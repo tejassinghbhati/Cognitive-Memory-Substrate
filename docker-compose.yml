@@ -1,0 +1,26 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────
+#  OpenClaw — ChromaDB Local Server
+#  Usage:  docker-compose up -d
+#  Stop:   docker-compose down
+#  Logs:   docker-compose logs -f chroma
+# ─────────────────────────────────────────────────────────────────
+
+services:
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: openclaw_chroma
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/chroma:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
