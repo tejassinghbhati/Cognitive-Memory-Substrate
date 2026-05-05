@@ -272,5 +272,3 @@ On `remember()`, SQLite is written first (synchronous, guaranteed). ChromaDB wri
 | Unique IDs | `uuid` v4 |
 | Config | `dotenv` |
 | Runtime | Node.js v18+ |
-#   C o g n i t i v e - M e m o r y - S u b s t r a t e  
- 
