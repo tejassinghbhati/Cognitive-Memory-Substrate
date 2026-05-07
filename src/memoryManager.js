@@ -254,6 +254,8 @@ function setPreference(key, value)  { return exact.setPreference(key, value); }
 function getPreference(key)         { return exact.getPreference(key); }
 function getAllPreferences()        { return exact.getAllPreferences(); }
 function getAllFacts(limit)         { return exact.getAllFacts(limit); }
+function findEntities(name)         { return exact.findEntities(name); }
+function getEntitiesByType(type)     { return exact.getEntitiesByType(type); }
 
 // ─────────────────────────────────────────────────────────────────
 // Stats helper — useful for the demo CLI dashboard
@@ -290,5 +292,7 @@ module.exports = {
   getPreference,
   getAllPreferences,
   getAllFacts,
+  findEntities,
+  getEntitiesByType,
   getStats,
 };

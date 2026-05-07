@@ -392,6 +392,13 @@ function getAllPreferences() {
   return stmts.getAllPreferences.all();
 }
 
+/**
+ * Close the database connection. Useful for tests.
+ */
+function close() {
+  db.close();
+}
+
 // ─────────────────────────────────────────────────────────────────
 // Exports
 // ─────────────────────────────────────────────────────────────────
@@ -417,4 +424,5 @@ module.exports = {
   setPreference,
   getPreference,
   getAllPreferences,
+  close,
 };

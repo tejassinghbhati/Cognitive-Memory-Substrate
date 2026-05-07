@@ -3,8 +3,8 @@
 > **The Persistent Memory Layer of the OpenClaw Framework**
 
 **Author:** Tejas Singh Bhati  
-**Status:** Active Development — Phase 1  
-**Module role:** Long-term context persistence across all OpenClaw agent sessions
+**Status:** Active Development — Phase 2  
+**Module role:** Long-term context persistence + structured entity registry
 
 ---
 
@@ -56,7 +56,10 @@ Agent Turn (userMessage)
         ▼
 Agent Tools (same contract as calculator.js):
   • rememberFact    — saves a fact to both stores
+  • saveEntity      — saves a structured named entity (person, project, etc.)
   • recallMemory    — queries both stores, returns ranked results
+  • recallEntity    — searches/retrieves structured entities
+  • summarizeSession — condenses history into high-level archival facts
   • forgetMemory    — deletes from both stores (right to erasure)
         │
         ▼
@@ -94,10 +97,13 @@ Cognitive Memory Substrate/
 │   ├── exactStore.js        ← SQLite store (4 tables, WAL mode, prepared stmts)
 │   ├── semanticStore.js     ← ChromaDB client + Xenova embedding pipeline
 │   ├── memoryManager.js     ← Unified facade (dual write/read/delete)
-│   └── tools/
-│       ├── rememberFact.js  ← Agent tool: save to both stores
-│       ├── recallMemory.js  ← Agent tool: dual-layer query + merge
-│       └── forgetMemory.js  ← Agent tool: delete from both stores
+│   ├── tools/
+│       ├── rememberFact.js     ← Agent tool: save to both stores
+│       ├── saveEntity.js       ← Agent tool: save structured entities
+│       ├── recallMemory.js     ← Agent tool: dual-layer query + merge
+│       ├── recallEntity.js     ← Agent tool: search structured entities
+│       ├── summarizeSession.js ← Agent tool: condense history into facts
+│       └── forgetMemory.js     ← Agent tool: delete from both stores
 ├── data/
 │   └── memory.db            ← SQLite file (auto-created, gitignored)
 ├── docker-compose.yml       ← ChromaDB local server (one command)
@@ -191,9 +197,12 @@ node index.js
 |---|---|
 | `/remember <key> = <value> [#category]` | Save a fact to both stores |
 | `/recall <query>` | Semantic + exact search |
+| `/search <query>` | Universal search (Facts + Entities + Prefs) |
 | `/forget <key>` | Delete a memory from both stores |
 | `/facts` | List all stored facts |
 | `/prefs` | List all preferences |
+| `/entities [type]` | List all stored entities |
+| `/summarize <topic>` | Test session summarization |
 | `/stats` | Show memory statistics |
 | `/reset` | Wipe the ChromaDB vector store |
 | `/exit` | Quit the CLI |

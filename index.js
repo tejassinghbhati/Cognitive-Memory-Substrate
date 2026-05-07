@@ -53,7 +53,10 @@ ${C.bold}Commands:${C.reset}
   ${C.green}/forget <key>${C.reset}                          — delete a memory
   ${C.green}/facts${C.reset}                                  — list all stored facts
   ${C.green}/prefs${C.reset}                                  — list all preferences
+  ${C.green}/entities [type]${C.reset}                        — list all entities
+  ${C.green}/search <query>${C.reset}                         — universal search
   ${C.green}/stats${C.reset}                                  — show memory statistics
+  ${C.green}/summarize <topic>${C.reset}                   — test session summarization
   ${C.green}/reset${C.reset}                                  — wipe vector store (caution!)
   ${C.green}/help${C.reset}                                   — show this help
   ${C.green}/exit${C.reset}                                   — quit
@@ -171,6 +174,74 @@ function handlePrefs() {
 }
 
 /**
+ * /entities [type]
+ */
+function handleEntities(type) {
+  const entities = type ? memory.getEntitiesByType(type) : memory.findEntities('');
+  if (entities.length === 0) {
+    print(`${C.yellow}No entities found${type ? ' of type ' + type : ''}.${C.reset}`);
+    return;
+  }
+  print(`\n${C.cyan}${C.bold}🏢 Named Entities (${entities.length})${C.reset}`);
+  hr();
+  for (const e of entities) {
+    const attrs = JSON.parse(e.attributes || '{}');
+    const attrStr = Object.entries(attrs).map(([k,v]) => `${k}:${v}`).join(', ');
+    print(`  ${C.bold}${e.name}${C.reset}  ${C.gray}[${e.type}]${C.reset}  ${attrStr ? C.dim + '(' + attrStr + ')' + C.reset : ''}`);
+  }
+}
+
+/**
+ * /search <query>
+ */
+async function handleSearch(query) {
+  if (!query.trim()) {
+    print(`${C.red}Usage: /search <query>${C.reset}`);
+    return;
+  }
+  
+  print(`${C.dim}Universal search across facts, entities, and prefs...${C.reset}`);
+  
+  const results = await memory.recall(query, { topK: 5 });
+  const entities = memory.findEntities(query);
+  const prefs = memory.getAllPreferences().filter(p => p.key.includes(query) || p.value.includes(query));
+
+  print(`\n${C.cyan}${C.bold}🔍 Universal Search Results for: "${query}"${C.reset}`);
+  hr();
+
+  if (results.length > 0) {
+    print(`${C.bold}Facts:${C.reset}`);
+    results.forEach(r => print(`  • ${C.bold}${r.key}${C.reset}: ${r.value} ${C.gray}(${r.source})${C.reset}`));
+  }
+
+  if (entities.length > 0) {
+    print(`\n${C.bold}Entities:${C.reset}`);
+    entities.forEach(e => print(`  • ${C.bold}${e.name}${C.reset} [${e.type}]`));
+  }
+
+  if (prefs.length > 0) {
+    print(`\n${C.bold}Preferences:${C.reset}`);
+    prefs.forEach(p => print(`  • ${C.bold}${p.key}${C.reset}: ${p.value}`));
+  }
+
+  if (results.length === 0 && entities.length === 0 && prefs.length === 0) {
+    print(`${C.yellow}No matches found across any store.${C.reset}`);
+  }
+}
+
+/**
+ * /summarize topic
+ */
+async function handleSummarize(topic) {
+  const summarizeTool = require('./src/tools/summarizeSession');
+  const summary = `Demo summary of the conversation regarding ${topic}. Agent helped user with memory management.`;
+  
+  print(`${C.dim}Simulating agent summarization...${C.reset}`);
+  const result = await summarizeTool.execute({ sessionId: SESSION_ID, summary, topic });
+  print(result);
+}
+
+/**
  * /stats
  */
 async function handleStats() {
@@ -179,6 +250,8 @@ async function handleStats() {
   print(`\n${C.cyan}${C.bold}📊 Memory Statistics${C.reset}`);
   hr();
   print(`  ${C.bold}Facts (SQLite)${C.reset}        :  ${C.green}${stats.facts}${C.reset}`);
+  const entities = memory.findEntities('').length;
+  print(`  ${C.bold}Entities (SQLite)${C.reset}     :  ${C.green}${entities}${C.reset}`);
   print(`  ${C.bold}Vectors (ChromaDB)${C.reset}    :  ${C.green}${stats.vectors}${C.reset}`);
   print(`  ${C.bold}Preferences (SQLite)${C.reset}  :  ${C.green}${stats.preferences}${C.reset}`);
   print(`  ${C.bold}Conversation turns${C.reset}    :  ${C.green}${stats.turns}${C.reset}`);
@@ -281,6 +354,27 @@ async function main() {
 
       if (input === '/prefs') {
         handlePrefs();
+        print('');
+        prompt();
+        return;
+      }
+
+      if (input.startsWith('/entities')) {
+        handleEntities(input.slice(10).trim());
+        print('');
+        prompt();
+        return;
+      }
+
+      if (input.startsWith('/search ')) {
+        await handleSearch(input.slice(8)).catch((e) => print(`${C.red}${e.message}${C.reset}`));
+        print('');
+        prompt();
+        return;
+      }
+
+      if (input.startsWith('/summarize ')) {
+        await handleSummarize(input.slice(11)).catch((e) => print(`${C.red}${e.message}${C.reset}`));
         print('');
         prompt();
         return;
