@@ -15,7 +15,7 @@ module.exports = {
   description: `Save or update a named entity in the persistent registry.
 Use this for structured entities that have specific attributes, rather than just simple facts.
 Examples:
-  - A person ("Tejas Singh Bhati") with attributes { "role": "developer", "twitter": "@tejas" }
+  - A person ("Tejas Singh Bhati") with attributes { "role": "developer", "twitter": "@TejasSinghBhati" }
   - A project ("OpenClaw") with attributes { "language": "Node.js", "status": "active" }
   - A technology ("SQLite") with attributes { "type": "database", "reliability": "high" }
 
